@@ -2,30 +2,37 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"golang/helper"
 )
 
-const ConferenceTickets int = 50
+const conferenceTickets int = 50
 
 var conferenceName = "Go Conference"
 var remainingTickets uint = 50
-var bookings = []string{}
+var bookings = make([]UserData, 0)
+
+type UserData struct {
+	firstName       string
+	lastName        string
+	email           string
+	numberOfTickets uint
+}
 
 func main() {
 
 	// greeting users func
-	greetUsers(conferenceName, ConferenceTickets, remainingTickets)
+	greetUsers()
 
 	for {
 		firstName, lastName, email, userTickets := getUserInput()
 		// validation
-		isValidName, isValidEmail, isValidTicketNumber := validateUserInput(firstName, lastName, email, userTickets, remainingTickets)
+		isValidName, isValidEmail, isValidTicketNumber := helper.ValidateUserInput(firstName, lastName, email, userTickets, remainingTickets)
 
 		if isValidName && isValidEmail && isValidTicketNumber {
-			bookTicket(remainingTickets, userTickets, bookings, firstName, lastName, email, conferenceName)
+			bookTicket(userTickets, firstName, lastName, email)
 			// call function print first names
-			firstNames := getFirstNames(bookings)
-			fmt.Printf("The fist names of bookings are: %v\n", firstNames)
+			firstNames := getFirstNames()
+			fmt.Printf("The first names of bookings are: %v\n", firstNames)
 
 			if remainingTickets == 0 {
 				// end the program
@@ -52,28 +59,19 @@ func main() {
 
 }
 
-func greetUsers(conferenceName string, ConferenceTickets int, remainingTickets uint) {
+func greetUsers() {
 	fmt.Printf("welcome to %v booking aplication\n", conferenceName)
-	fmt.Printf("we have total of %v tickets and %v are still available.\n", ConferenceTickets, remainingTickets)
+	fmt.Printf("we have total of %v tickets and %v are still available.\n", conferenceTickets, remainingTickets)
 	fmt.Printf("Get your ticket here to attend\n")
 }
 
-func getFirstNames(bookings []string) []string {
+func getFirstNames() []string {
 
 	firstNames := []string{}
 	for _, booking := range bookings { // (underscore) blank identifier -> to   ignore a variable u don't want to use
-		var names = strings.Fields(booking)
-		firstNames = append(firstNames, names[0])
+		firstNames = append(firstNames, booking.firstName)
 	}
 	return firstNames
-}
-
-func validateUserInput(firstName string, lastName string, email string, userTickets uint, remainingTickets uint) (bool, bool, bool) {
-	isValidName := len(firstName) >= 2 && len(lastName) >= 2
-	isValidEmail := strings.Contains(email, "@")
-	isValidTicketNumber := userTickets > 0 && userTickets <= remainingTickets
-
-	return isValidName, isValidEmail, isValidTicketNumber
 }
 
 func getUserInput() (string, string, string, uint) {
@@ -95,9 +93,18 @@ func getUserInput() (string, string, string, uint) {
 	return firstName, lastName, email, userTickets
 }
 
-func bookTicket(remainingTickets uint, userTickets uint, bookings []string, firstName string, lastName string, email string, conferenceName string) {
+func bookTicket(userTickets uint, firstName string, lastName string, email string) {
 	remainingTickets = remainingTickets - userTickets
-	bookings = append(bookings, firstName+" "+lastName)
+	// create a map for a user
+	var userData = UserData{
+		firstName:       firstName,
+		lastName:        lastName,
+		email:           email,
+		numberOfTickets: userTickets,
+	}
+
+	bookings = append(bookings, userData)
+	fmt.Printf("List of bookings is %v\n", bookings)
 
 	fmt.Printf("Thank u %v %v  for booking %v tickets, u will receive a confirmation email at %v\n", firstName, lastName, userTickets, email)
 	fmt.Printf("%v tickets remaining for %v\n", remainingTickets, conferenceName)
